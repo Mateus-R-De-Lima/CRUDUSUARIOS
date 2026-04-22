@@ -1,6 +1,7 @@
 package api
 
 import (
+	"CRUDUSERS/database"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -34,7 +35,7 @@ func sendJSON(w http.ResponseWriter, resp Response, status int) {
 	}
 }
 
-func NewHandler() http.Handler {
+func NewHandler(db database.Application) http.Handler {
 
 	r := chi.NewMux()
 

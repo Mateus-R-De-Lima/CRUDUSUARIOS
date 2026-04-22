@@ -2,6 +2,7 @@ package main
 
 import (
 	"CRUDUSERS/api"
+	"CRUDUSERS/database"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,7 +20,8 @@ func main() {
 }
 
 func run() error {
-	handler := api.NewHandler()
+
+	handler := api.NewHandler(database.Application{})
 	s := http.Server{
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  time.Minute,
