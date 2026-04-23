@@ -13,3 +13,14 @@ type User struct {
 type Application struct {
 	data map[ID]User
 }
+
+func NewApplication() Application {
+	return Application{data: make(map[ID]User)}
+}
+
+func (app *Application) AddUser(id ID, user User) {
+	if app.data == nil {
+		app.data = make(map[ID]User)
+	}
+	app.data[id] = user
+}

@@ -21,7 +21,7 @@ func main() {
 
 func run() error {
 
-	handler := api.NewHandler(database.Application{})
+	handler := api.NewHandler(database.NewApplication())
 	s := http.Server{
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  time.Minute,
