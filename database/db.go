@@ -55,3 +55,22 @@ func (app *Application) GetAllUsers() []UserResponse {
 	}
 	return users
 }
+
+func (app *Application) UpdateUser(id ID, user User) (UserResponse, bool) {
+	if _, exists := app.data[id]; !exists {
+		return UserResponse{}, false
+	}
+	app.data[id] = user
+	return UserResponse{
+		ID:   uuid.UUID(id).String(),
+		User: user,
+	}, true
+}
+
+func (app *Application) DeleteUser(id ID) bool {
+	if _, exists := app.data[id]; !exists {
+		return false
+	}
+	delete(app.data, id)
+	return true
+}
