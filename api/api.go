@@ -45,7 +45,8 @@ func NewHandler(db database.Application) http.Handler {
 	r.Use(middleware.RequestID)
 
 	r.Post("/user", handlerPostUser(db))
-
+	r.Get("/user", handlerGetAllUser(db))
+	r.Get("/user/{id}", handlerGetUserByID(db))
 	return r
 }
 
@@ -74,14 +75,20 @@ func handlerPostUser(db database.Application) http.HandlerFunc {
 		}
 		var id database.ID = database.ID(uuid.New())
 
-		db.AddUser(id, user)
+		userResponse := db.AddUser(id, user)
+
+		if userResponse.ID == "" {
+			sendJSON(
+				w,
+				Response{Error: "failed to add user"},
+				http.StatusInternalServerError,
+			)
+			return
+		}
 
 		sendJSON(
 			w,
-			Response{Data: map[string]any{
-				"id":   uuid.UUID(id).String(),
-				"user": user,
-			}},
+			Response{Data: userResponse},
 			http.StatusCreated,
 		)
 
@@ -101,4 +108,57 @@ func validateUser(user database.User) []map[string]string {
 	}
 
 	return errs
+}
+
+func handlerGetUserByID(db database.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			slog.Error("failed to parse user id", "error", err)
+			sendJSON(
+				w,
+				Response{Error: "invalid user id format"},
+				http.StatusBadRequest,
+			)
+			return
+		}
+
+		user, found := db.GetUser(database.ID(id))
+		if !found {
+			sendJSON(
+				w,
+				Response{Error: "user not found"},
+				http.StatusNotFound,
+			)
+			return
+		}
+
+		sendJSON(
+			w,
+			Response{Data: user},
+			http.StatusOK,
+		)
+	}
+}
+
+func handlerGetAllUser(db database.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		users := db.GetAllUsers()
+
+		if len(users) == 0 {
+			sendJSON(
+				w,
+				Response{Error: "no users found"},
+				http.StatusNotFound,
+			)
+			return
+		}
+
+		sendJSON(
+			w,
+			Response{Data: users},
+			http.StatusOK,
+		)
+	}
 }
