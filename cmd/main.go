@@ -1,8 +1,8 @@
 package main
 
 import (
-	"CRUDUSERS/api"
-	"CRUDUSERS/database"
+	"CRUDUSERS/internal/api"
+	"CRUDUSERS/internal/database"
 	"log/slog"
 	"net/http"
 	"os"
