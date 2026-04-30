@@ -7,8 +7,10 @@ package store
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type DBTX interface {
@@ -29,4 +31,22 @@ func (q *Queries) WithTx(tx pgx.Tx) *Queries {
 	return &Queries{
 		db: tx,
 	}
+}
+
+func NewUUID() (pgtype.UUID, error) {
+	u := uuid.New()
+
+	var id pgtype.UUID
+	err := id.Scan(u.String())
+	if err != nil {
+		return pgtype.UUID{}, err
+	}
+
+	return id, nil
+}
+
+func ParseUUID(s string) (pgtype.UUID, error) {
+	var id pgtype.UUID
+	err := id.Scan(s)
+	return id, err
 }

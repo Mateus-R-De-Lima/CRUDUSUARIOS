@@ -1,27 +1,30 @@
 package api
 
 import (
-	"CRUDUSERS/internal/database"
+	"CRUDUSERS/internal/database/store"
+	"context"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
 )
 
-func handlerGetUserByID(db database.Application) http.HandlerFunc {
+func handlerGetUserByID(queries *store.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		idStr := chi.URLParam(r, "id")
-		id, err := uuid.Parse(idStr)
+
+		id, err := store.ParseUUID(idStr)
+
 		if err != nil {
 			slog.Error("failed to parse user id", "error", err)
 			sendJSON(w, Response{Error: "invalid user id format"}, http.StatusBadRequest)
 			return
 		}
 
-		user, found := db.GetUser(database.ID(id))
-		if !found {
-			sendJSON(w, Response{Error: "user not found"}, http.StatusNotFound)
+		user, err := queries.GetUser(context.Background(), id)
+		if err != nil {
+			slog.Error("failed to fetch user", "error", err)
+			sendJSON(w, Response{Error: "error fetching user"}, http.StatusInternalServerError)
 			return
 		}
 

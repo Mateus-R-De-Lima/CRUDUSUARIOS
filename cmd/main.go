@@ -2,11 +2,14 @@ package main
 
 import (
 	"CRUDUSERS/internal/api"
-	"CRUDUSERS/internal/database"
+	"CRUDUSERS/internal/database/store"
+	"context"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -20,8 +23,24 @@ func main() {
 }
 
 func run() error {
+	// Example connection URL: "postgres://username:password@localhost:5432/database_name"
+	urlExample := "postgres://pguser:pgpassword@localhost:5432/pguserdb"
 
-	handler := api.NewHandler(database.NewApplication())
+	db, err := pgxpool.New(context.Background(), urlExample)
+
+	if err != nil {
+		return err
+	}
+
+	if err := db.Ping(context.Background()); err != nil {
+		return err
+	}
+
+	defer db.Close()
+
+	queries := store.New(db)
+	handler := api.NewHandler(queries)
+
 	s := http.Server{
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  time.Minute,
