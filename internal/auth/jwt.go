@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -66,4 +67,28 @@ func GenareteTokenPair(userID, email string) (*TokenPair, error) {
 		RefreshToken: refreshToken,
 	}, nil
 
+}
+
+func ValidateToken(tokenString string) (*CustomClaims, error) {
+
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(t *jwt.Token) (any, error) {
+
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("Erro na assinatura do Token:")
+		}
+		return getSecretKey(), nil
+
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*CustomClaims)
+
+	if !ok {
+		return nil, errors.New("token inválido ou expirado")
+	}
+
+	return claims, nil
 }
