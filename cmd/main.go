@@ -4,12 +4,14 @@ import (
 	"CRUDUSERS/internal/api"
 	"CRUDUSERS/internal/database/store"
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -23,10 +25,18 @@ func main() {
 }
 
 func run() error {
-	// Example connection URL: "postgres://username:password@localhost:5432/database_name"
-	urlExample := "postgres://pguser:pgpassword@localhost:5432/pguserdb"
 
-	db, err := pgxpool.New(context.Background(), urlExample)
+	if err := godotenv.Load(); err != nil {
+		panic(err)
+	}
+
+	// Criando uma conexão com o banco de dados PostgreSQL usando pgxpool, utilizando as variáveis de ambiente para configurar a conexão
+	db, err := pgxpool.New(context.Background(), fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
+		os.Getenv("GOCRUD_DATABASE_USER"),
+		os.Getenv("GOCRUD_DATABASE_PASSWORD"),
+		os.Getenv("GOCRUD_DATABASE_HOST"),
+		os.Getenv("GOCRUD_DATABASE_PORT"),
+		os.Getenv("GOCRUD_DATABASE_NAME")))
 
 	if err != nil {
 		return err
