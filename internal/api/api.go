@@ -16,10 +16,17 @@ func NewHandler(queries *store.Queries) http.Handler {
 	r.Use(middleware.RequestID)
 
 	r.Post("/user", handlerPostUser(queries))
-	r.Get("/user", handlerGetAllUser(queries))
-	r.Get("/user/{id}", handlerGetUserByID(queries))
-	r.Put("/user/{id}", handlerUpdateUser(queries))
-	r.Delete("/user/{id}", handlerDeleteUser(queries))
+	r.Route("/user", func(r chi.Router) {
+		r.Use(JWTMiddleware)
+		r.Get("/", handlerGetAllUser(queries))
+		r.Get("/{id}", handlerGetUserByID(queries))
+		r.Put("/{id}", handlerUpdateUser(queries))
+		r.Delete("/{id}", handlerDeleteUser(queries))
+
+	})
+
+	r.Post("/login", LoginHandler)
+	r.Post("/refresh", RefreshHandler)
 
 	return r
 }
